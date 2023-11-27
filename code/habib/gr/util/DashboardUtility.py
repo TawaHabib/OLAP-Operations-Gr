@@ -14,6 +14,7 @@ from cube_model.Cube import FactInstance
 from util.IKillable import Killable
 from util.Util import Util
 
+
 class ImageGrid(tk.Frame):
     def __init__(self, master, image_label_data, last_command: str = 'None'):
         super().__init__(master)

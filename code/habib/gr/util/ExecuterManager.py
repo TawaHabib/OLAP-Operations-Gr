@@ -12,6 +12,7 @@ from cube_model.Cube import FactInstance
 from cube_model.Cube import IDimension
 from util.DashboardUtility import get_gestore_graphic
 from util.IKillable import Killable
+from util.Util import Util
 
 
 class MediaPipeGesturesCommand(object):
@@ -36,9 +37,6 @@ class MediaPipeGesturesCommand(object):
     def ILoveYou(self):
         pass
 
-    def kill(self):
-        pass
-
 
 class ExecuteManager(Thread, Killable):
 
@@ -55,7 +53,7 @@ class ExecuteManager(Thread, Killable):
 
     def run(self) -> None:
         super().run()
-        self.command_manager = CommandManager()
+        self.command_manager = CommandFactory()
         while self.get_life():
             self.event.wait()
             self.event.clear()
@@ -74,12 +72,12 @@ class ExecuteManager(Thread, Killable):
                 continue
 
             for command in self.current_execution:
-                print('execution command: '+command)
+                #print('execution command: '+command)
                 self.execute_command(command)
 
             self.last_execution.clear()
             self.last_execution.extend(self.current_execution)
-            self.last_time_execution=time.time_ns()
+            self.last_time_execution = time.time_ns()
         self.command_manager.kill()
 
     def kill(self):
@@ -124,9 +122,13 @@ class ExecuteManager(Thread, Killable):
         return self.life
 
 
-class CommandManager(Killable):
-    def __init__(self):
-        self.command = TwoPassDWhCommand()
+class CommandFactory(Killable):
+    def __init__(self, file_name: str = '../../../utilities/config.property',
+                 section: str = 'DEFAULT', prop: str = 'command_class_name'):
+        class_name = Util.get_properties_from_file(file_name, 'utf-8', section, prop)
+        klass = globals()[class_name]
+        instance = klass()
+        self.command = instance
 
     def get_commands_class(self) -> object:
         return self.command
@@ -154,44 +156,49 @@ class TwoPassDWhCommand(Killable, MediaPipeGesturesCommand):
 
     def Thumb_Down(self):
         self.gestore_grafica.previous()
-        self.gestore_grafica.update_last_command(self.command)
+        #self.gestore_grafica.update_last_command(self.command)
 
     def Thumb_Up(self):
         self.gestore_grafica.next()
-        self.gestore_grafica.update_last_command(self.command)
+        #self.gestore_grafica.update_last_command(self.command)
 
     def Closed_Fist(self):
-        self.__actions('Closed_Fist')
-        self.gestore_grafica.update_last_command(self.command)
+        self.__actions('Closed_Fist', '✊')
+        #self.gestore_grafica.update_last_command(self.command)
 
     def Pointing_Up(self):
-        self.__actions('Pointing_Up')
-        self.gestore_grafica.update_last_command(self.command)
+        self.__actions('Pointing_Up', '☝️')
+        #self.gestore_grafica.update_last_command(self.command)
 
     def Victory(self):
-        self.__actions('Victory')
-        self.gestore_grafica.update_last_command(self.command)
+        self.__actions('Victory', '✌️')
+        #self.gestore_grafica.update_last_command(self.command)
 
     def ILoveYou(self):
-        self.__actions('ILoveYou')
-        self.gestore_grafica.update_last_command(self.command)
+        self.__actions('ILoveYou', '🤟')
+        #self.gestore_grafica.update_last_command(self.command)
 
     def kill(self):
         self.graphic_thread.join(0)
         self.data_base_executor.kill()
         self.pax = -1
 
-    def __actions(self, caller_name_as_str: str):
+    def __actions(self, caller_name_as_str: str, emoji=None):
         match self.pax:
             case 0:
                 #print(caller_name_as_str+'\taccepted')
                 self.command = str(caller_name_as_str)
+                if not(emoji is None):
+                    self.gestore_grafica.update_last_command(emoji)
+                else:
+                    self.gestore_grafica.update_last_command(self.command)
                 self.pax += 1
             case 1:
                 self.command = self.command+'_'+str(caller_name_as_str)
                 self.__execute_cmd(self.command)
                 self.pax = 0
                 self.command = ''
+                self.gestore_grafica.update_last_command(self.command)
             case -1:
                 pass
 

@@ -20,10 +20,11 @@ class Printer:
         self.gestures = gestures
         self.print()
 
-    def update(self, frame: numpy.ndarray, gestures: list[Mf.Gesture]):
+    def update(self, frame: numpy.ndarray, gestures: list[Mf.Gesture], FPS = ''):
         self.x, self.y, self.c = frame.shape
         self.frame = frame
         self.gestures = gestures
+        Util.print_on_frame(FPS, self.frame, [25, 25],Color.red)
         self.print()
         return self.frame
 
@@ -41,3 +42,7 @@ class Printer:
 
         # show frame
         cv2.imshow(self.frameName, self.frame)
+
+    def print_string(self, string: str, position, color=Color.red):
+        Util.print_on_frame(string, self.frame, position, color)
+

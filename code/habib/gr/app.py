@@ -29,8 +29,13 @@ def run(file_name: str, section_mediapipe_property_name: str, section_gesture_na
 
     gesture_recognizer_result_list: list[Gesture] = []
     # initialize mediapipe
+
     gesture_recognizer_result = mp.tasks.vision.GestureRecognizerResult
 
+    global FPS
+    FPS = 0
+    global time_fin
+    time_fin = time.time_ns()
     # function that mp call
     def save_result(result: gesture_recognizer_result, output_image: mp.Image, timestamp_ms: int):
         gesture_recognizer_result_list.clear()
@@ -39,6 +44,14 @@ def run(file_name: str, section_mediapipe_property_name: str, section_gesture_na
         Util.update_gestures_names(gestures=gesture_recognizer_result_list,
                                    file_path=file_name, gesture_section=section_gesture_name, )
         executor.update_gestures(gesture_recognizer_result_list)
+        try:
+            global FPS
+            global time_fin
+            FPS = 1/(((time.time_ns()-time_fin)/1000000000)+0.001)
+        except:
+            pass
+        finally:
+            time_fin = time.time_ns()
 
     # Initialize the gesture recognizer model
     base_options = python.BaseOptions(model_asset_path=model)
@@ -51,6 +64,7 @@ def run(file_name: str, section_mediapipe_property_name: str, section_gesture_na
     printer = Printer(cap, 'Output')
     executor = ExecuteManager()
     executor.start()
+    time_fin = time.time_ns()
     #printer.start()
     while True:
         # Read each frame from the webcam
@@ -65,10 +79,10 @@ def run(file_name: str, section_mediapipe_property_name: str, section_gesture_na
 
         # conversion in mp image del frame
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=framergb)
+
         recognizer.recognize_async(mp_image, time.time_ns() // 1_000_000)
-
+        fps = str(int(FPS))
         printer.update(frame, gesture_recognizer_result_list)
-
         if (cv2.waitKey(1) == ord('q')
                 or cv2.getWindowProperty("Output", cv2.WND_PROP_VISIBLE) < 1):
             break
