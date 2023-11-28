@@ -245,6 +245,7 @@ class TwoPassDWhCommand(Killable, MediaPipeGesturesCommand):
         self.gestore_grafica.declare_data_is_change()
 
     def drill_down_operation(self, dimension: str):
+
         if not self.fact_instance.drill_down(dimension.upper()):
             return
         self.file_lock.acquire()

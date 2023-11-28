@@ -79,8 +79,10 @@ def run(file_name: str, section_mediapipe_property_name: str, section_gesture_na
 
         # conversion in mp image del frame
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=framergb)
-
-        recognizer.recognize_async(mp_image, time.time_ns() // 1_000_000)
+        try:
+            recognizer.recognize_async(mp_image, time.time_ns() // 1_000_000)
+        except Exception as e:
+            print(e)
         fps = str(int(FPS))
         printer.update(frame, gesture_recognizer_result_list)
         if (cv2.waitKey(1) == ord('q')

@@ -11,12 +11,18 @@ class Connection(object):
     def get_connection(self):
         pass
 
+    def is_connect(self) -> bool:
+        pass
+
 
 class MySqlConnection(Connection):
     def __init__(self, file_name: str) -> None:
         #print('in')
         self.file = file_name
-        self.connection = MySqlConnection.open_connection(file_name)
+        try:
+            self.connection = MySqlConnection.open_connection(file_name)
+        except Exception as e:
+            print(e)
 
     @staticmethod
     def open_connection(file_prop: str):
@@ -33,9 +39,25 @@ class MySqlConnection(Connection):
         return connection
 
     def get_connection(self) -> mysql.connector.MySQLConnection:
-        if self.connection.is_connected():
-            return self.connection
-        return MySqlConnection.open_connection(self.file)
+        try:
+            if self.connection.is_connected():
+                return self.connection
+        except:
+            pass
+        c = None
+        try:
+            c = MySqlConnection.open_connection(self.file)
+        except:
+            pass
+        return c
+
+    def is_connect(self) -> bool:
+        res = False
+        try:
+            res=self.connection.is_connected()
+        except:
+            res = False
+        return res
 
 
 def create_connection(path_to_properties: str = '../../../utilities/config.property') -> Connection:
@@ -45,17 +67,23 @@ def create_connection(path_to_properties: str = '../../../utilities/config.prope
 class SqlExecutor(Killable):
     def __init__(self, path_to_sql_code_file: str, sql_section: str,
                  path_to_save_data: str = '../../../utilities/actual_result.csv'):
-        self.connection = create_connection()
-        self.cursor = self.connection.get_connection().cursor()
-        self.sql_file = path_to_sql_code_file
-        self.sql_section = sql_section
-        self.actual_result = path_to_save_data
+        try:
+            self.connection = create_connection()
+            self.cursor = self.connection.get_connection().cursor()
+            self.sql_file = path_to_sql_code_file
+            self.sql_section = sql_section
+            self.actual_result = path_to_save_data
+        except:
+            pass
 
     def execute_and_save(self, kay: str):
+        try:
+            if os.path.exists(self.actual_result) and self.connection.get_connection().is_connected():
+                os.remove(self.actual_result)
+        except:
+            return
         sql_code = Util.get_properties_from_file(self.sql_file, 'utf-8', self.sql_section, kay)
         self.cursor.execute(sql_code)
-        if os.path.exists(self.actual_result):
-            os.remove(self.actual_result)
         file = open(self.actual_result, 'a', encoding='utf-8')
         line = ''
         for des in self.cursor.description:
@@ -77,8 +105,14 @@ class SqlExecutor(Killable):
                 file.close()
                 break
 
+    def can_execute(self):
+        return self.connection.is_connect()
+
     def kill(self):
-        self.connection.get_connection().close()
+        try:
+            self.connection.get_connection().close()
+        except:
+            pass
 
 
 def get_sql_executor(path_to_sql_code_file: str = '../../../utilities/sql_commands',

@@ -125,9 +125,17 @@ def update_gui(master_frame: MasterFrame, gestore: GestoreGraficoMid, root, axis
     gestore.lock_changes.acquire()
     if gestore.changes:
         gestore.lock_file.acquire()
-        axis = get_histo_2d_axes(gestore.fact_instance.dimensions[gestore.actual_frame].get_actual_level_name().upper(),
-                                 gestore.fact_instance.get_aggregate_data_name_as_str(),
-                                 delimiter=';')
+        try:
+            axis = get_histo_2d_axes(gestore.fact_instance.dimensions[gestore.actual_frame].get_actual_level_name().upper(),
+                                     gestore.fact_instance.get_aggregate_data_name_as_str(),
+                                     delimiter=';')
+        except Exception as e:
+            gestore.fact_instance.dimensions[gestore.actual_frame].dimension_down()
+            axis = get_histo_2d_axes(
+                gestore.fact_instance.dimensions[gestore.actual_frame].get_actual_level_name().upper(),
+                gestore.fact_instance.get_aggregate_data_name_as_str(),
+                delimiter=';')
+            print(e)
         gestore.lock_file.release()
         master_frame.update_axis(axis)
         master_frame.frame_emoji.update_command(gestore.last_command)
@@ -167,9 +175,13 @@ def launch_graphic_app(gestore: GestoreGraficoMid):
     ppi_x = screen_width / screen_width_inches
     ppi_y = screen_height / screen_height_inches
     gestore.lock_file.acquire()
-    axis = get_histo_2d_axes(gestore.fact_instance.dimensions[gestore.actual_frame].get_actual_level_name().upper(),
-                             gestore.fact_instance.get_aggregate_data_name_as_str(),
-                             delimiter=';')
+    try:
+        axis = get_histo_2d_axes(gestore.fact_instance.dimensions[gestore.actual_frame].get_actual_level_name().upper(),
+                                 gestore.fact_instance.get_aggregate_data_name_as_str(),
+                                 delimiter=';')
+    except Exception as e:
+        print(e)
+
     gestore.lock_file.release()
     master_frame = MasterFrame(master=root, image_label_data=gestore.emojis, axis=axis, ppi_x=ppi_x, ppi_y=ppi_y)
     master_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10, pady=10)
