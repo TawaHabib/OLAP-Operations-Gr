@@ -7,4 +7,5 @@ Real-time system for viewing and manipulating an OLAP cube through gesture-based
 - Pillow 
 - matplotlib
 - tkinter
+- numpy
 
