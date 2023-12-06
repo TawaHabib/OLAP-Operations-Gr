@@ -39,22 +39,23 @@ class MySqlConnection(Connection):
         return connection
 
     def get_connection(self) -> mysql.connector.MySQLConnection:
+        c = None
         try:
             if self.connection.is_connected():
                 return self.connection
         except:
-            pass
-        c = None
-        try:
-            c = MySqlConnection.open_connection(self.file)
-        except:
-            pass
-        return c
+            try:
+                c = MySqlConnection.open_connection(self.file)
+                self.connection = c
+            except:
+                pass
+            finally:
+                return c
 
     def is_connect(self) -> bool:
         res = False
         try:
-            res=self.connection.is_connected()
+            res = self.connection.is_connected()
         except:
             res = False
         return res
