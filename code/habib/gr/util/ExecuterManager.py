@@ -236,19 +236,19 @@ class TwoPassDWhCommand(Killable, MediaPipeGesturesCommand):
         self.drill_down_operation('FILIALE')
 
     def roll_up_operation(self, dimension: str):
-        if not self.fact_instance.roll_up(dimension.upper()):
-            return
         self.file_lock.acquire()
+
+        self.fact_instance.roll_up(dimension.upper())
         self.data_base_executor.execute_and_save(self.fact_instance.get_dimensions_levels_as_str())
         print(self.fact_instance.get_dimensions_levels_as_str())
         self.file_lock.release()
         self.gestore_grafica.declare_data_is_change()
 
     def drill_down_operation(self, dimension: str):
-
-        if not self.fact_instance.drill_down(dimension.upper()):
-            return
         self.file_lock.acquire()
+
+        self.fact_instance.drill_down(dimension.upper())
+        print('in')
         self.data_base_executor.execute_and_save(self.fact_instance.get_dimensions_levels_as_str())
         self.file_lock.release()
         print(self.fact_instance.get_dimensions_levels_as_str())

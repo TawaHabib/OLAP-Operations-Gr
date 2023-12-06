@@ -122,22 +122,34 @@ class GestoreGraficoMid:
 
 
 def update_gui(master_frame: MasterFrame, gestore: GestoreGraficoMid, root, axis):
+    # print('waiting for change lock...')
     gestore.lock_changes.acquire()
+    # print('lock acquire...')
     if gestore.changes:
+        # print('waiting for file lock...')
         gestore.lock_file.acquire()
+        # print('lock acquire...')
+
         try:
             axis = get_histo_2d_axes(gestore.fact_instance.dimensions[gestore.actual_frame].get_actual_level_name().upper(),
                                      gestore.fact_instance.get_aggregate_data_name_as_str(),
                                      delimiter=';')
         except Exception as e:
+            print(e)
             gestore.fact_instance.dimensions[gestore.actual_frame].dimension_down()
-            axis = get_histo_2d_axes(
-                gestore.fact_instance.dimensions[gestore.actual_frame].get_actual_level_name().upper(),
-                gestore.fact_instance.get_aggregate_data_name_as_str(),
-                delimiter=';')
+            try:
+                axis = get_histo_2d_axes(
+                    gestore.fact_instance.dimensions[gestore.actual_frame].get_actual_level_name().upper(),
+                    gestore.fact_instance.get_aggregate_data_name_as_str(),
+                    delimiter=';')
+            except:
+                pass
             print(e)
         gestore.lock_file.release()
-        master_frame.update_axis(axis)
+        try:
+            master_frame.update_axis(axis)
+        except Exception as e:
+            print(e)
         master_frame.frame_emoji.update_command(gestore.last_command)
         gestore.changes = False
     gestore.lock_changes.release()
@@ -180,6 +192,7 @@ def launch_graphic_app(gestore: GestoreGraficoMid):
                                  gestore.fact_instance.get_aggregate_data_name_as_str(),
                                  delimiter=';')
     except Exception as e:
+        _, axis = plt.subplots()
         print(e)
 
     gestore.lock_file.release()

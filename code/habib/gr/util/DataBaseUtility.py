@@ -19,45 +19,38 @@ class MySqlConnection(Connection):
     def __init__(self, file_name: str) -> None:
         #print('in')
         self.file = file_name
-        try:
-            self.connection = MySqlConnection.open_connection(file_name)
-        except Exception as e:
-            print(e)
+        self.connection = MySqlConnection.open_connection(file_name)
 
     @staticmethod
     def open_connection(file_prop: str):
         encoding = 'utf-8'
-        connection = None
+        #connection = None
         host = Util.get_properties_from_file(file_prop, encoding, 'SQL_CONN', 'host')
         database = Util.get_properties_from_file(file_prop, encoding, 'SQL_CONN', 'database')
         user = Util.get_properties_from_file(file_prop, encoding, 'SQL_CONN', 'user')
         password = Util.get_properties_from_file(file_prop, encoding, 'SQL_CONN', 'password')
-        try:
-            connection = mysql.connector.connect(host=host, database=database, user=user, password=password)
-        except Exception as e:
-            print(e)
+
+        connection = mysql.connector.connect(host=host, database=database, user=user, password=password)
+
         return connection
 
     def get_connection(self) -> mysql.connector.MySQLConnection:
-        c = None
         try:
-            if self.connection.is_connected():
+            if self.is_connect():
                 return self.connection
-        except:
-            try:
-                c = MySqlConnection.open_connection(self.file)
-                self.connection = c
-            except:
-                pass
-            finally:
-                return c
+            self.connection = MySqlConnection.open_connection(self.file)
+        except Exception as e:
+            print(e)
+
 
     def is_connect(self) -> bool:
         res = False
         try:
             res = self.connection.is_connected()
-        except:
+        except Exception as e:
+            print(e)
             res = False
+        print(res)
         return res
 
 
@@ -70,41 +63,52 @@ class SqlExecutor(Killable):
                  path_to_save_data: str = '../../../utilities/actual_result.csv'):
         try:
             self.connection = create_connection()
-            self.cursor = self.connection.get_connection().cursor()
+        except:
+            self.connection = None
+        finally:
             self.sql_file = path_to_sql_code_file
             self.sql_section = sql_section
             self.actual_result = path_to_save_data
-        except:
-            pass
+
 
     def execute_and_save(self, kay: str):
         try:
-            if os.path.exists(self.actual_result) and self.connection.get_connection().is_connected():
+            print ('dentro try')
+            if os.path.exists(self.actual_result) and self.connection.is_connect():
+                print('file remuve')
                 os.remove(self.actual_result)
-        except:
+            else :
+                x = self.connection.get_connection()
+                print(x)
+        except Exception as e:
+            print(e)
             return
-        sql_code = Util.get_properties_from_file(self.sql_file, 'utf-8', self.sql_section, kay)
-        self.cursor.execute(sql_code)
-        file = open(self.actual_result, 'a', encoding='utf-8')
-        line = ''
-        for des in self.cursor.description:
-            line = line+str(des[0])+';'
-        file.write(line+'\n')
-        num_lines=0
-        while True:
-            try:
-                result = self.cursor.fetchone()
+        try:
+            sql_code = Util.get_properties_from_file(self.sql_file, 'utf-8', self.sql_section, kay)
+            cursor = self.connection.get_connection().cursor()
+            cursor.execute(sql_code)
+            file = open(self.actual_result, 'a', encoding='utf-8')
+            line = ''
+            for des in cursor.description:
+                line = line+str(des[0])+';'
+            file.write(line+'\n')
+            num_lines=0
+            while True:
+                try:
+                    result = cursor.fetchone()
 
-                line = ''
-                for attribute in result:
-                    line = line+str(attribute)+';'
-                line = str(line+'\n')
-                num_lines += 1
-                file.write(line)
-            except:
-                print('Righe'+str(num_lines))
-                file.close()
-                break
+                    line = ''
+                    for attribute in result:
+                        line = line+str(attribute)+';'
+                    line = str(line+'\n')
+                    num_lines += 1
+                    file.write(line)
+                except:
+                    print('Righe'+str(num_lines))
+                    file.close()
+                    break
+        except Exception as e1:
+            print(e1)
 
     def can_execute(self):
         return self.connection.is_connect()
