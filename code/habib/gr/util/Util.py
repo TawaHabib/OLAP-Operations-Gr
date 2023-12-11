@@ -136,7 +136,7 @@ class Ppt:
 
     def active_presentation_mode(self):
         self.objCOM.SlideShowSettings.Run()
-        self.objCOM.SlideShowWindow.Activate()
+        #self.objCOM.SlideShowWindow.Activate()
         self.presentation_mode = True
 
     def next(self):

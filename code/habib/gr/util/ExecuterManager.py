@@ -303,7 +303,7 @@ class PptxCommand(Killable, MediaPipeGesturesCommand):
         print('\n'+'Open_Palm executed'+'\n')
 
     def Pointing_Up(self):
-        self.pptx_file = Util.get_properties_from_file(file_name, encode, section, prop)
+        #self.pptx_file = Util.get_properties_from_file(file_name, encode, section, prop)
         self.pptx = Ppt(self.pptx_file, self.app)
         self.pptx.active_presentation_mode()
 
