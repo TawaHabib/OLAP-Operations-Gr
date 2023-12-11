@@ -13,6 +13,7 @@ from cube_model.Cube import IDimension
 from util.DashboardUtility import get_gestore_graphic
 from util.IKillable import Killable
 from util.Util import Util
+from util.Util import Ppt
 
 
 class MediaPipeGesturesCommand(object):
@@ -82,7 +83,6 @@ class ExecuteManager(Thread, Killable):
 
     def kill(self):
         self.life = False
-        self.command_manager.kill()
         self.event.set()
 
     def execute_command(self, command: str):
@@ -283,3 +283,41 @@ class PrintCommands(Killable, MediaPipeGesturesCommand):
 
     def kill(self):
         print('killed')
+
+
+class PptxCommand(Killable, MediaPipeGesturesCommand):
+    from util.Util import Ppt
+
+    def __init__(self, file_name='../../../utilities/config.property', encode='utf-8',
+                 section='PPTX', prop='file_path'):
+        self.pptx_file = Util.get_properties_from_file(file_name, encode, section, prop)
+
+        self.app = win32com.client.Dispatch("PowerPoint.Application")
+        self.pptx = Ppt(self.pptx_file, self.app)
+        self.pptx.active_presentation_mode()
+
+    def Closed_Fist(self):
+        self.pptx.close()
+
+    def Open_Palm(self):
+        print('\n'+'Open_Palm executed'+'\n')
+
+    def Pointing_Up(self):
+        self.pptx_file = Util.get_properties_from_file(file_name, encode, section, prop)
+        self.pptx = Ppt(self.pptx_file, self.app)
+        self.pptx.active_presentation_mode()
+
+    def Thumb_Down(self):
+        self.pptx.previous()
+
+    def Thumb_Up(self):
+        self.pptx.next()
+
+    def Victory(self):
+        print('\n'+'Victory executed'+'\n')
+
+    def ILoveYou(self):
+        print('\n'+'ILoveYou executed'+'\n')
+
+    def kill(self):
+        self.app.Quit()
