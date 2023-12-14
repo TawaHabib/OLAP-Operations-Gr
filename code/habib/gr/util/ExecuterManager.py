@@ -290,6 +290,10 @@ class PptxCommand(Killable, MediaPipeGesturesCommand):
 
     def __init__(self, file_name='../../../utilities/config.property', encode='utf-8',
                  section='PPTX', prop='file_path'):
+        self.fil_name = file_name
+        self.encode = encode
+        self.section = section
+        self.prop = prop
         self.pptx_file = Util.get_properties_from_file(file_name, encode, section, prop)
 
         self.app = win32com.client.Dispatch("PowerPoint.Application")
@@ -297,13 +301,14 @@ class PptxCommand(Killable, MediaPipeGesturesCommand):
         self.pptx.active_presentation_mode()
 
     def Closed_Fist(self):
-        self.pptx.close()
+        #self.pptx.close()
+        print('\n'+'Closed_Fist executed'+'\n')
 
     def Open_Palm(self):
         print('\n'+'Open_Palm executed'+'\n')
 
     def Pointing_Up(self):
-        #self.pptx_file = Util.get_properties_from_file(file_name, encode, section, prop)
+        self.pptx_file = Util.get_properties_from_file(self.fil_name, self.encode, self.section, self.prop)
         self.pptx = Ppt(self.pptx_file, self.app)
         self.pptx.active_presentation_mode()
 
@@ -317,7 +322,8 @@ class PptxCommand(Killable, MediaPipeGesturesCommand):
         print('\n'+'Victory executed'+'\n')
 
     def ILoveYou(self):
-        print('\n'+'ILoveYou executed'+'\n')
+        self.pptx.close()
+        #print('\n'+'ILoveYou executed'+'\n')
 
     def kill(self):
         self.app.Quit()
